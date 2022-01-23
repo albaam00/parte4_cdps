@@ -1,0 +1,68 @@
+##################################################################################################
+# Productpage service Interno
+##################################################################################################
+apiVersion: v1
+kind: Service  #puede ser un deploymment o un pod 
+metadata:
+  name: productpage
+  labels:
+    app: productpage
+    service: productpage
+spec:
+  ports:            #puedes añadir un targetPort: 50, que coincide con el puerto donde escuaha el pod
+  - port: 9080
+    name: http
+  selector:
+    app: productpage
+---
+##################################################################################################
+# Productpage service Externo
+##################################################################################################
+apiVersion: v1
+kind: Service  #puede ser un deploymment o un pod 
+metadata:
+  name: productpage-exterior
+  labels:
+    app: productpage
+    service: productpage
+spec:
+  type: LoadBalancer
+  selector:
+    app: productpage
+  ports:            #puedes añadir un targetPort: 50, que coincide con el puerto donde escuaha el pod
+  - port: 9080
+    targetPort: 9080
+    name: http
+    nodePort: 30001
+---
+##################################################################################################
+# Productpage Deployment
+##################################################################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productpage-v1
+  labels:
+    app: productpage
+    version: v1
+spec:               #para el deployment
+  replicas: 1
+  selector:         #hace una conexión con el servicio a través de labels label 
+    matchLabels:
+      app: productpage
+      version: v1
+  template:          #para el pod
+    metadata:
+      labels:
+        app: productpage
+        version: v1
+    spec:            #para el pod
+      containers:
+      - name: productpage
+        image: cristinaanaya09/productpage:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9080
+        securityContext:
+          runAsUser: 1000
+---
